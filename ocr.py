@@ -1,8 +1,8 @@
 import cv2
 from PIL import Image
 import pytesseract
-
-filename = ['images/shawn/image37394.jpg']
+# image4492
+files = [f'images/shawn/image{x}.jpg' for x in range(4200,37394,2)]
 pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
 config = '--psm 7'
 
@@ -47,43 +47,65 @@ def resizeImgDim(img):
 	return dim
 
 
-def main():
-	# Expose only the text
-	images = cv2.imread(filename[0])
-	images = split_image(images)
-	# images = split_height(images)
-	# images = split_height(images)
-	images = recenter(images)
+def main(filename):
 
-	# Perform resize to improve readability
-	dim = resizeImgDim(images)
-	sizedImg = cv2.resize(images, dim, interpolation=cv2.INTER_AREA)
+	def writeToFile(text):
+		with open('results_dec_25_2021.txt', 'a') as f:
+			f.write(text)
 
-	# Bluring
-	blurImg = cv2.GaussianBlur(sizedImg, (7, 7), cv2.BORDER_DEFAULT)
-	# images = cv2.medianBlur(images, 3)
+	try:
 
-	# gray scale
-	gray = cv2.cvtColor(blurImg, cv2.COLOR_BGR2GRAY)
+		# Expose only the text
+		images = cv2.imread(filename)
+		images = split_image(images)
+		# images = split_height(images)
+		# images = split_height(images)
+		images = recenter(images)
 
-	# threshold
-	_, gray = cv2.threshold(
-		gray, 150, 255, cv2.THRESH_BINARY)
+		# Perform resize to improve readability
+		dim = resizeImgDim(images)
+		sizedImg = cv2.resize(images, dim, interpolation=cv2.INTER_AREA)
 
-	# img = cv2.imread('/Users/josimages/shawn/image5712.jpg')
+		# Bluring
+		blurImg = cv2.GaussianBlur(sizedImg, (7, 7), cv2.BORDER_DEFAULT)
+		images = cv2.medianBlur(images, 3)
 
-	# Perform morphological operation - opening
-	kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-	gray = cv2.morphologyEx(gray, cv2.MORPH_OPEN, kernel, iterations=3)
+		# gray scale
+		gray = cv2.cvtColor(blurImg, cv2.COLOR_BGR2GRAY)
 
-	cv2.imwrite(filename[0], gray)
+		# threshold
+		_, gray = cv2.threshold(
+			gray, 150, 255, cv2.THRESH_BINARY)
 
-	# Attempt text recognition
-	text = pytesseract.image_to_string(
-		Image.open(filename[0]), lang='eng', config=config)
-	print(text)
+		# img = cv2.imread('/Users/josimages/shawn/image5712.jpg')
 
+		# Perform morphological operation - opening
+		kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+		gray = cv2.morphologyEx(gray, cv2.MORPH_OPEN, kernel, iterations=3)
+
+		newFileName = f'{filename}-modified.jpg'
+		# Write file to new location
+		cv2.imwrite(newFileName, gray)
+
+
+		
+		# Attempt text recognition
+		text = pytesseract.image_to_string(
+			Image.open(newFileName), lang='eng', config=config)
+		
+		writeToFile(text)
+		
+	except cv2.error:
+		writeToFile(f"Error modifying filename {filename}")
+
+	except AttributeError:
+		writeToFile(f"Error modifying filename {filename}")
+
+	
+
+		
 
 
 if __name__ == '__main__':
-	main()
+	for file in files:
+		main(file)
