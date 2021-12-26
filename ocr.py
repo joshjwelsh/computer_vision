@@ -6,6 +6,9 @@ files = [f'images/shawn/image{x}.jpg' for x in range(4200,37394,2)]
 pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
 config = '--psm 7'
 
+
+test_files = ['images/shawn/image4200.jpg',
+              'images/shawn/image4420.jpg', 'images/shawn/image37393.jpg']
 def split_image(img):
 	heightSplit = split_height(img)
 	widthSplit = split_width(heightSplit)
@@ -24,7 +27,13 @@ def split_height_btm(img):
 	height_cutoff = height // 2
 	return img[:height_cutoff+10, :]
 
+def outputDim(img):
+	print(img.shape)
 
+def display(text,img):
+	cv2.imshow(text, img)
+	cv2.waitKey(0)
+	cv2.destroyAllWindows()
 
 # remove excess from top 
 def split_height(img):
@@ -36,7 +45,7 @@ def split_height(img):
 def split_width(img):
 	width = img.shape[1]
 	width_cutoff = width // 2
-	return img[:, :width_cutoff]
+	return img[:, :width_cutoff-200]
 
 
 def resizeImgDim(img):
@@ -67,15 +76,16 @@ def main(filename):
 		sizedImg = cv2.resize(images, dim, interpolation=cv2.INTER_AREA)
 
 		# Bluring
-		blurImg = cv2.GaussianBlur(sizedImg, (7, 7), cv2.BORDER_DEFAULT)
-		images = cv2.medianBlur(images, 3)
+		blurImg = cv2.GaussianBlur(sizedImg, (7, 7), cv2.BORDER_ISOLATED)
+		# blurImg = cv2.medianBlur(blurImg, 1)
 
 		# gray scale
 		gray = cv2.cvtColor(blurImg, cv2.COLOR_BGR2GRAY)
 
 		# threshold
 		_, gray = cv2.threshold(
-			gray, 150, 255, cv2.THRESH_BINARY)
+                    gray, 155, 255, cv2.THRESH_BINARY + cv2.THRESH_TOZERO
+                )
 
 		# img = cv2.imread('/Users/josimages/shawn/image5712.jpg')
 
@@ -85,21 +95,35 @@ def main(filename):
 
 		newFileName = f'{filename}-modified.jpg'
 		# Write file to new location
-		cv2.imwrite(newFileName, gray)
-
-
 		
+		# outputDim(sizedImg)
+		# display("original", sizedImg)
+		# outputDim(gray)
+		# display("gray", gray)
+		
+		# bitwise-and 
+		result = cv2.bitwise_and(sizedImg, sizedImg, mask=gray)
+
+
+		result[gray == 0] = (0, 0, 0)
+		# _, result = cv2.threshold(
+		# 	gray, 240, 255, cv2.THRESH_BINARY)
+		cv2.imwrite(newFileName, result)
+
+
+		# display("bitwise", result)	
+
 		# Attempt text recognition
 		text = pytesseract.image_to_string(
 			Image.open(newFileName), lang='eng', config=config)
 		
 		writeToFile(text)
 		
-	except cv2.error:
-		writeToFile(f"Error modifying filename {filename}")
+	except cv2.error as e:
+		writeToFile(f"Error modifying filename {filename} {e}" )
 
-	except AttributeError:
-		writeToFile(f"Error modifying filename {filename}")
+	except AttributeError as e:
+		writeToFile(f"Error modifying filename {filename} {e}")
 
 	
 
