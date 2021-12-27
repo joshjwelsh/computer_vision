@@ -1,29 +1,28 @@
 import cv2
 from PIL import Image
 import pytesseract
-# image4492
-files = [f'images/shawn/image{x}.jpg' for x in range(4200,37394,2)]
-pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
-config = '--psm 7'
 
+files = [f'images/shawn/image{x}.jpg' for x in range(4200,37394,2)]
 
 test_files = ['images/shawn/image4200.jpg',
-              'images/shawn/image4420.jpg', 'images/shawn/image37393.jpg']
+              'images/shawn/image4420.jpg', 'images/shawn/imageimage4492', 'images/shawn/image5712.jpg', 'images/shawn/image37393.jpg']
+
+config = '--psm 7'
+
 def split_image(img):
 	heightSplit = split_height(img)
 	widthSplit = split_width(heightSplit)
-#	print(f"Height: {height}, width: {width}") 
 	return widthSplit
 
 def recenter(img):
 	new_img = img
-	for i in range(3):
+	for _ in range(3):
 		new_img = split_height_btm(new_img)
 	return new_img
+
 # remove excess from bottom 
 def split_height_btm(img):
 	height = img.shape[0]
-
 	height_cutoff = height // 2
 	return img[:height_cutoff+10, :]
 
@@ -38,7 +37,6 @@ def display(text,img):
 # remove excess from top 
 def split_height(img):
 	height = img.shape[0]
-
 	height_cutoff = height // 2 
 	return img[height_cutoff+10:,:]
 
@@ -67,8 +65,6 @@ def main(filename):
 		# Expose only the text
 		images = cv2.imread(filename)
 		images = split_image(images)
-		# images = split_height(images)
-		# images = split_height(images)
 		images = recenter(images)
 
 		# Perform resize to improve readability
@@ -103,27 +99,23 @@ def main(filename):
 		
 		# bitwise-and 
 		result = cv2.bitwise_and(sizedImg, sizedImg, mask=gray)
-
-
 		result[gray == 0] = (0, 0, 0)
-		# _, result = cv2.threshold(
-		# 	gray, 240, 255, cv2.THRESH_BINARY)
+
+
 		cv2.imwrite(newFileName, result)
-
-
 		# display("bitwise", result)	
 
 		# Attempt text recognition
 		text = pytesseract.image_to_string(
 			Image.open(newFileName), lang='eng', config=config)
-		
+	
 		writeToFile(text)
 		
 	except cv2.error as e:
-		writeToFile(f"Error modifying filename {filename} {e}" )
+		writeToFile(f"Error modifying filename {filename} - {e}" )
 
 	except AttributeError as e:
-		writeToFile(f"Error modifying filename {filename} {e}")
+		writeToFile(f"Error modifying filename {filename} - {e}")
 
 	
 
