@@ -1,8 +1,15 @@
+from os.path import isfile, join
+from os import listdir
+import os
+import glob
 import cv2
 from PIL import Image
 import pytesseract
-
-files = [f'images/shawn/image{x}.jpg' for x in range(4200,37394,2)]
+import re
+# run through preprocessed images - they are unique frames 
+files = glob.glob('/Users/joshuawelsh/Projects/computer_vision/preproccesed/*.jpg')
+files = sorted(files, key=lambda x: float(re.findall("(\d+)", x)[0]))
+print(files)
 
 test_files = ['images/shawn/image4200.jpg',
               'images/shawn/image4420.jpg', 'images/shawn/imageimage4492', 'images/shawn/image5712.jpg', 'images/shawn/image37393.jpg']
@@ -57,7 +64,7 @@ def resizeImgDim(img):
 def main(filename):
 
 	def writeToFile(text):
-		with open('results_dec_25_2021.txt', 'a') as f:
+		with open('results_dec_26_2021.txt', 'a') as f:
 			f.write(text)
 
 	try:
@@ -80,7 +87,7 @@ def main(filename):
 
 		# threshold
 		_, gray = cv2.threshold(
-                    gray, 155, 255, cv2.THRESH_BINARY + cv2.THRESH_TOZERO
+                    gray, 155, 255, cv2.THRESH_BINARY 
                 )
 
 		# img = cv2.imread('/Users/josimages/shawn/image5712.jpg')
