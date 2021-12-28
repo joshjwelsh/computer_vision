@@ -9,7 +9,7 @@ import re
 # run through preprocessed images - they are unique frames 
 files = glob.glob('/Users/joshuawelsh/Projects/computer_vision/preproccesed/*.jpg')
 files = sorted(files, key=lambda x: float(re.findall("(\d+)", x)[0]))
-print(files)
+# print(files)
 
 test_files = ['images/shawn/image4200.jpg',
               'images/shawn/image4420.jpg', 'images/shawn/imageimage4492', 'images/shawn/image5712.jpg', 'images/shawn/image37393.jpg']
@@ -54,7 +54,7 @@ def split_width(img):
 
 
 def resizeImgDim(img):
-	scale_perc = 200
+	scale_perc = 250
 	height = (img.shape[0] * scale_perc // 100)
 	width = (img.shape[1] * scale_perc // 100 )
 	dim = (width, height)
@@ -64,7 +64,7 @@ def resizeImgDim(img):
 def main(filename):
 
 	def writeToFile(text):
-		with open('results_dec_26_2021.txt', 'a') as f:
+		with open('results_dec_28_2021.txt', 'a') as f:
 			f.write(text)
 
 	try:
@@ -76,25 +76,25 @@ def main(filename):
 
 		# Perform resize to improve readability
 		dim = resizeImgDim(images)
-		sizedImg = cv2.resize(images, dim, interpolation=cv2.INTER_AREA)
+		sizedImg = cv2.resize(images, dim, interpolation=cv2.INTER_LINEAR)
 
 		# Bluring
-		blurImg = cv2.GaussianBlur(sizedImg, (7, 7), cv2.BORDER_ISOLATED)
-		# blurImg = cv2.medianBlur(blurImg, 1)
+		blurImg = cv2.GaussianBlur(sizedImg, (9, 9), cv2.BORDER_CONSTANT)
+		blurImg = cv2.medianBlur(blurImg, 7)
 
 		# gray scale
 		gray = cv2.cvtColor(blurImg, cv2.COLOR_BGR2GRAY)
 
 		# threshold
 		_, gray = cv2.threshold(
-                    gray, 155, 255, cv2.THRESH_BINARY 
+                    gray, 200, 255, cv2.THRESH_BINARY 
                 )
 
 		# img = cv2.imread('/Users/josimages/shawn/image5712.jpg')
 
 		# Perform morphological operation - opening
-		kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-		gray = cv2.morphologyEx(gray, cv2.MORPH_OPEN, kernel, iterations=3)
+		kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 5))
+		gray = cv2.morphologyEx(gray, cv2.MORPH_OPEN, kernel, iterations=2)
 
 		newFileName = f'{filename}-modified.jpg'
 		# Write file to new location
